@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Izumi Music</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{ 
+  font-family: 'Inter', sans-serif;
+  margin:0;
+  color:#fff;
+  background:#0b0c12;
+}
+
+/* HEADER */
+.header{
+padding:15px;
+font-weight:700;
+font-size:18px;
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+/* PLAYER */
+.player{
+position:fixed;
+inset:0;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+background:radial-gradient(circle at top,#1a1a2e,#0b0c12);
+}
+
+/* COVER */
+.art{
+width:170px;
+height:170px;
+border-radius:25px;
+overflow:hidden;
+margin-bottom:15px;
+box-shadow:0 0 30px rgba(255,45,85,0.2);
+}
+
+.art img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+/* TITLE */
+.title{
+font-size:20px;
+font-weight:600;
+margin-bottom:10px;
+text-align:center;
+}
+
+.status{
+font-size:12px;
+opacity:0.7;
+margin-bottom:8px;
+}
+
+/* BUTTON */
+button{
+background:rgba(255,255,255,0.08);
+border:1px solid rgba(255,255,255,0.1);
+color:white;
+font-size:18px;
+border-radius:12px;
+padding:10px 14px;
+cursor:pointer;
+}
+
+.playBtn{
+width:70px;
+height:70px;
+border-radius:50%;
+background:white;
+color:black;
+border:none;
+font-size:22px;
+}
+
+.controls{
+display:flex;
+gap:15px;
+align-items:center;
+margin-top:10px;
+}
+
+input[type=range]{
+width:80%;
+margin-top:10px;
+accent-color:#ff2d55;
+}
+
+/* PLAYLIST */
+.playlistPanel{
+position:fixed;
+right:-100%;
+top:0;
+bottom:0;
+width:85%;
+background:#121220;
+transition:0.3s;
+padding:15px;
+overflow-y:auto;
+z-index:10;
+}
+
+.playlistPanel.active{
+right:0;
+}
+
+.song{
+display:flex;
+align-items:center;
+gap:12px;
+background:rgba(255,255,255,0.05);
+padding:12px;
+margin:10px 0;
+border-radius:16px;
+cursor:pointer;
+}
+
+.avatar{
+width:45px;
+height:45px;
+border-radius:12px;
+background:linear-gradient(135deg,#ff0055,#6a00ff);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:18px;
+}
+
+#overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.5);
+display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<div style="width:10px;height:10px;border-radius:50%;background:#ff2d55;"></div>
+Izumi Music
+</div>
+
+<!-- PLAYER -->
+<div class="player">
+
+<div class="art">
+<img id="cover" src="cover.jpg">
+</div>
+
+<div class="title" id="title">-</div>
+<div class="status" id="status">Ready</div>
+
+<audio id="audio"></audio>
+
+<input type="range" id="progress" value="0">
+
+<div class="controls">
+<button onclick="prev()">⏮️</button>
+<button class="playBtn" onclick="toggle()" id="playBtn">▶️</button>
+<button onclick="next()">⏭️</button>
+</div>
+
+<div style="position:absolute;top:15px;right:15px;">
+<button onclick="togglePlaylist()">📜</button>
+</div>
+
+</div>
+
+<!-- PLAYLIST -->
+<div class="playlistPanel" id="playlistPanel">
+<h3>Playlist</h3>
+<div id="list"></div>
+</div>
+
+<div id="overlay" onclick="togglePlaylist()"></div>
+
+<script>
+
+/* LOCAL FILES (NETLIFY READY) */
+var lagu=[
+{src:"lagu1.mp3",nama:"0と1の狭間"},
+{src:"lagu2.mp3",nama:"ガラスの夢"},
+{src:"lagu3.mp3",nama:"データの海"},
+{src:"lagu4.mp3",nama:"光る存在"},
+{src:"lagu5.mp3",nama:"君が好き"},
+{src:"lagu6.mp3",nama:"愛の記憶"},
+{src:"lagu7.mp3",nama:"恐怖と愛"},
+{src:"lagu8.mp3",nama:"冷たい風"},
+{src:"lagu9.mp3",nama:"ラブレター"},
+{src:"lagu10.mp3",nama:"狂乱"}
+];
+
+let index=0;
+let play=false;
+
+let audio=document.getElementById("audio");
+let title=document.getElementById("title");
+let btn=document.getElementById("playBtn");
+let progress=document.getElementById("progress");
+let status=document.getElementById("status");
+let cover=document.getElementById("cover");
+
+/* LOAD */
+function load(i){
+audio.src=lagu[i].src;
+title.innerText=lagu[i].nama;
+cover.src="cover.jpg";
+
+status.innerText="Loaded: "+lagu[i].nama;
+
+audio.pause();
+play=false;
+btn.innerText="▶️";
+}
+
+/* PLAY */
+function toggle(){
+if(play){
+audio.pause();
+play=false;
+btn.innerText="▶️";
+status.innerText="Paused";
+}else{
+audio.play();
+play=true;
+btn.innerText="⏸️";
+status.innerText="Playing";
+}
+}
+
+/* NEXT */
+function next(){
+index=(index+1)%lagu.length;
+load(index);
+audio.play();
+play=true;
+btn.innerText="⏸️";
+}
+
+/* PREV */
+function prev(){
+index=(index-1+lagu.length)%lagu.length;
+load(index);
+audio.play();
+play=true;
+btn.innerText="⏸️";
+}
+
+/* PROGRESS */
+audio.addEventListener("timeupdate",()=>{
+if(!isNaN(audio.duration)){
+progress.value=(audio.currentTime/audio.duration)*100;
+}
+});
+
+progress.oninput=()=>{
+audio.currentTime=(progress.value/100)*audio.duration;
+};
+
+/* PLAYLIST */
+function togglePlaylist(){
+document.getElementById("playlistPanel").classList.toggle("active");
+document.getElementById("overlay").style.display =
+document.getElementById("playlistPanel").classList.contains("active")
+? "block":"none";
+}
+
+/* LIST */
+let list=document.getElementById("list");
+
+for(let i=0;i<lagu.length;i++){
+let d=document.createElement("div");
+d.className="song";
+
+d.innerHTML=`
+<div class="avatar">🎧</div>
+<div>
+<div>${lagu[i].nama}</div>
+<small>${lagu[i].src}</small>
+</div>
+`;
+
+d.onclick=()=>{
+index=i;
+load(i);
+audio.play();
+play=true;
+btn.innerText="⏸️";
+togglePlaylist();
+};
+
+list.appendChild(d);
+}
+
+load(index);
+
+</script>
+
+</body>
+</html>
